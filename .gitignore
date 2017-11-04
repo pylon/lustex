@@ -1,0 +1,12 @@
+# elixir standard
+/_build/
+/cover/
+/deps/
+/doc/
+/.fetch
+erl_crash.dump
+*.ez
+
+# leex/yecc output
+/src/lustex_lexer.erl
+/src/lustex_parser.erl
