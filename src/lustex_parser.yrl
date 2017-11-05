@@ -71,7 +71,7 @@ template_token -> while_block    : '$1'.
 % simple expression blocks
 
 expr_block -> '{{' code_sequence '}}' :
-  "_t = _t .. ((" ++ '$2' ++ ") or \"\")\n".
+  "_t = _t .. (tostring(" ++ '$2' ++ "))\n".
 
 % control blocks
 

@@ -133,6 +133,10 @@ defmodule Lustex.TemplateTest do
       {~S({{ for_           }}), ~S(for)},
       {~S({{ while_         }}), ~S(while)},
       {~S({{ end_           }}), ~S(end)},
+      {~S({{ {}             }}), inspect([])},
+      {~S({{ {{}}           }}), inspect([[]])},
+      {~S({{ {1, 2, 3}      }}), inspect([1, 2, 3])},
+      {~S({{ {a=1, b=2}     }}), inspect(%{"a" => 1, "b" => 2})},
     ]
     for {template, result} <- templates do
       context = %{

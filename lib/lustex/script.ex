@@ -185,10 +185,14 @@ defmodule Lustex.Script do
 
   defp defaults do
     %{
-      tostring: callback(&inspect/1),
+      tostring: callback(&tostring/1),
       print:    callback(&print/1)
     }
   end
+
+  defp tostring(nil), do: ""
+  defp tostring(x) when is_binary(x), do: x
+  defp tostring(x), do: inspect(x)
 
   defp print(x) do
     IO.puts(inspect(x))
