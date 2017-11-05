@@ -24,9 +24,10 @@ defmodule Lustex.Script do
   @doc """
   compiles a Lua script block
 
-  |option |descriptio n                             |default|
-  |-------|-----------------------------------------|-------|
-  |`eval?`|evaluate the script to initialze globals?|false  |
+  |option   |description                              |default|
+  |---------|-----------------------------------------|-------|
+  |`globals`|map of global variables to assign        |%{}    |
+  |`eval?`  |evaluate the script to initialze globals?|false  |
   """
   @spec compile(script::String.t, options::keyword) ::
     {:ok, compiled} | {:error, any}
@@ -37,21 +38,16 @@ defmodule Lustex.Script do
   end
 
   @doc """
-  compiles a Lua script block
-
-  |option |description                             |default|
-  |-------|----------------------------------------|-------|
-  |`eval?`|execute the script to initialze globals?|false  |
+  compiles a Lua script block, throwing on error
   """
   @spec compile!(script::String.t, options::keyword) :: compiled
   def compile!(script, options \\ []) do
     with {:ok, chunk, state} <- :luerl.load(script) do
-      # disable insecure functions
-      state = Enum.reduce(
-        [:dofile, :loadfile, :require],
-        state,
-        &:luerl.set_table([&1], nil, &2)
-      )
+      # assign global state
+      globals = Map.merge(defaults(), Keyword.get(options, :globals, %{}))
+      state = Enum.reduce(globals, state, fn {k, v}, s ->
+          :luerl.set_table([k], v, s)
+      end)
 
       # optionally evaluate the script for global state
       if Keyword.get(options, :eval?, false) do
@@ -150,7 +146,7 @@ defmodule Lustex.Script do
   @spec callback(function::(... -> any)) :: ([any] -> [any])
   def callback(function) do
     fn args ->
-      [apply(function, args)]
+      [apply(function, Enum.map(args, &lua_to_ex/1))]
     end
   end
 
@@ -160,7 +156,7 @@ defmodule Lustex.Script do
   @spec callback(module::module, function::(... -> any)) :: ([any] -> [any])
   def callback(module, function) do
     fn args ->
-      [apply(module, function, args)]
+      [apply(module, function, Enum.map(args, &lua_to_ex/1))]
     end
   end
 
@@ -185,5 +181,17 @@ defmodule Lustex.Script do
   defp lua_to_ex(x) do
     # pass all others
     x
+  end
+
+  defp defaults do
+    %{
+      tostring: callback(&inspect/1),
+      print:    callback(&print/1)
+    }
+  end
+
+  defp print(x) do
+    IO.puts(inspect(x))
+    nil
   end
 end

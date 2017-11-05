@@ -54,6 +54,14 @@ defmodule Lustex.ScriptTest do
     assert_raise ScriptError, ~r/parse error/, fn ->
       compile!(~S<}>)
     end
+
+    script = "return test"
+    {:ok, compiled} = compile(script, globals: %{test: 42})
+    assert exec!(compiled, %{}) === 42
+
+    script = "return test()"
+    compiled = compile!(script, globals: %{test: callback(fn -> 42 end)})
+    assert exec!(compiled, %{}) === 42
   end
 
   test "exec" do
@@ -116,6 +124,15 @@ defmodule Lustex.ScriptTest do
     assert eval!("test0()", context) === 0
     assert eval!("test1(1, {2, 3}, {x=4})", context) === expect1
     assert eval!("test2(5)", context) === 5
+  end
+
+  test "tostring" do
+    assert eval!("tostring({})", %{}) === "[]"
+    assert eval!("tostring({{}})", %{}) === "[[]]"
+    assert eval!("tostring({1, 2, 3})", %{}) === "[1, 2, 3]"
+
+    expect = inspect(%{"a" => 1, "b" => 2, "c" => 3})
+    assert eval!("tostring({a=1, b=2, c=3})", %{}) === expect
   end
 
   def inject(x) do
