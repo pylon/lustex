@@ -3,15 +3,20 @@ defmodule Lustex.TemplateTest do
 
   import Lustex.Template
 
-  alias Lustex.Script
   alias Lustex.Errors.{ScriptError, TemplateError}
 
   test "compilation" do
     {:ok, compiled} = compile("test{{value}}")
-    assert Script.exec!(compiled, %{value: 1}) == "test1"
+    assert render!(compiled, %{value: 1}) == "test1"
 
     compiled = compile!("test{{value}}")
-    assert Script.exec!(compiled, %{value: 1}) == "test1"
+    assert render!(compiled, %{value: 1}) == "test1"
+
+    {:ok, compiled} = compile("test{{value}}", globals: %{value: 1})
+    assert render!(compiled, %{}) == "test1"
+
+    compiled = compile!("test{{value}}", globals: %{value: 1})
+    assert render!(compiled, %{}) == "test1"
 
     {:error, %TemplateError{}} = compile("{{")
     assert_raise TemplateError, ~r/parse error/, fn ->
@@ -24,6 +29,12 @@ defmodule Lustex.TemplateTest do
     assert rendered == "test1"
 
     rendered = render!("test{{value}}", %{value: 1})
+    assert rendered == "test1"
+
+    {:ok, rendered} = render("test{{value}}", %{}, globals: %{value: 1})
+    assert rendered == "test1"
+
+    rendered = render!("test{{value}}", %{}, globals: %{value: 1})
     assert rendered == "test1"
 
     {:error, %TemplateError{}} = render("{{", %{value: 1})

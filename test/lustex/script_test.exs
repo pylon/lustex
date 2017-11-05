@@ -38,6 +38,16 @@ defmodule Lustex.ScriptTest do
     )
   end
 
+  test "eval" do
+    assert eval("x > 0", %{x: 42}) === {:ok, true}
+    assert eval!("x > 0", %{x: 42})
+
+    {:error, %ScriptError{}} = eval("(> x 42)", %{x: 43})
+    assert_raise ScriptError, ~r/parse error/, fn ->
+      eval!("(> x 42)", %{x: 43})
+    end
+  end
+
   test "compile" do
     script = """
     y = 0
@@ -137,9 +147,5 @@ defmodule Lustex.ScriptTest do
 
   def inject(x) do
     x
-  end
-
-  def eval!(expr, context) do
-    exec!("return (#{expr})", context)
   end
 end

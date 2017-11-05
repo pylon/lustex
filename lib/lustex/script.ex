@@ -22,6 +22,26 @@ defmodule Lustex.Script do
   alias Lustex.Errors.ScriptError
 
   @doc """
+  evaluates a Lua expression (i.e. "x > 0") within a context and returns
+  an error tuple on failure
+  """
+  @spec eval(script::String.t, context::map) :: {:ok, any} | {:error, any}
+  def eval(expr, context) do
+    {:ok, eval!(expr, context)}
+  rescue
+    e in ScriptError -> {:error, e}
+  end
+
+  @doc """
+  evaluates a Lua expression (i.e. "x > 0") within a context and raises on
+  failure
+  """
+  @spec eval!(script::String.t, context::map) :: any
+  def eval!(expr, context) do
+    exec!("return (#{expr})", context)
+  end
+
+  @doc """
   compiles a Lua script block
 
   |option   |description                              |default|

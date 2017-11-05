@@ -13,11 +13,16 @@ defmodule Lustex.Template do
 
   @doc """
   renders a string or compiled template within the specified context map
+
+  For options, see Lustex.Script.compile.
   """
-  @spec render(template::String.t | Script.compiled, context::map) ::
+  @spec render(
+    template::String.t | Script.compiled,
+    context::map,
+    options::keyword) ::
     {:ok, String.t} | {:error, any}
-  def render(template, context) do
-    {:ok, render!(template, context)}
+  def render(template, context, options \\ []) do
+    {:ok, render!(template, context, options)}
   rescue
     e in [ScriptError, TemplateError] -> {:error, e}
   end
@@ -25,23 +30,27 @@ defmodule Lustex.Template do
   @doc """
   renders a string or compiled template, throwing on error
   """
-  @spec render!(template::String.t | Script.compiled, context::map) :: String.t
-  def render!(template, context) when is_binary(template) do
+  @spec render!(
+    template::String.t | Script.compiled,
+    context::map,
+    options::keyword) :: String.t
+  def render!(template, context, options \\ [])
+  def render!(template, context, options) when is_binary(template) do
     template
-    |> compile!()
+    |> compile!(options)
     |> render!(context)
   end
-  def render!(template, context) do
+  def render!(template, context, _options) do
     Script.exec!(template, context)
   end
 
   @doc """
   compiles a string template to a Lua chunk for later evaluation
   """
-  @spec compile(template::String.t) ::
+  @spec compile(template::String.t, options::keyword) ::
     {:ok, Script.compiled} | {:error, any}
-  def compile(template) do
-    {:ok, compile!(template)}
+  def compile(template, options \\ []) do
+    {:ok, compile!(template, options)}
   rescue
     e in [ScriptError, TemplateError] -> {:error, e}
   end
@@ -49,12 +58,12 @@ defmodule Lustex.Template do
   @doc """
   compiles a string template, throwing on error
   """
-  @spec compile!(template::String.t) :: Script.compiled
-  def compile!(template) do
+  @spec compile!(template::String.t, options::keyword) :: Script.compiled
+  def compile!(template, options \\ []) do
     template
     |> lex!()
     |> parse!()
-    |> Script.compile!()
+    |> Script.compile!(options)
   end
 
   defp lex!(template) do
