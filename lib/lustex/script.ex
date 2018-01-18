@@ -17,7 +17,7 @@ defmodule Lustex.Script do
   execution methods support pre-compiled scripts
   """
 
-  @type compiled::{chunk::any, state::any}
+  @type compiled :: {chunk :: any, state :: any}
 
   alias Lustex.Errors.ScriptError
 
@@ -25,7 +25,8 @@ defmodule Lustex.Script do
   evaluates a Lua expression (i.e. "x > 0") within a context and returns
   an error tuple on failure
   """
-  @spec eval(script::String.t, context::map) :: {:ok, any} | {:error, any}
+  @spec eval(script :: String.t(), context :: map) ::
+          {:ok, any} | {:error, any}
   def eval(expr, context) do
     {:ok, eval!(expr, context)}
   rescue
@@ -36,7 +37,7 @@ defmodule Lustex.Script do
   evaluates a Lua expression (i.e. "x > 0") within a context and raises on
   failure
   """
-  @spec eval!(script::String.t, context::map) :: any
+  @spec eval!(script :: String.t(), context :: map) :: any
   def eval!(expr, context) do
     exec!("return (#{expr})", context)
   end
@@ -49,8 +50,8 @@ defmodule Lustex.Script do
   |`globals`|map of global variables to assign        |%{}    |
   |`eval?`  |evaluate the script to initialze globals?|false  |
   """
-  @spec compile(script::String.t, options::keyword) ::
-    {:ok, compiled} | {:error, any}
+  @spec compile(script :: String.t(), options :: keyword) ::
+          {:ok, compiled} | {:error, any}
   def compile(script, options \\ []) do
     {:ok, compile!(script, options)}
   rescue
@@ -60,14 +61,16 @@ defmodule Lustex.Script do
   @doc """
   compiles a Lua script block, throwing on error
   """
-  @spec compile!(script::String.t, options::keyword) :: compiled
+  @spec compile!(script :: String.t(), options :: keyword) :: compiled
   def compile!(script, options \\ []) do
     with {:ok, chunk, state} <- :luerl.load(script) do
       # assign global state
       globals = Map.merge(defaults(), Keyword.get(options, :globals, %{}))
-      state = Enum.reduce(globals, state, fn {k, v}, s ->
+
+      state =
+        Enum.reduce(globals, state, fn {k, v}, s ->
           :luerl.set_table([k], v, s)
-      end)
+        end)
 
       # optionally evaluate the script for global state
       if Keyword.get(options, :eval?, false) do
@@ -86,8 +89,8 @@ defmodule Lustex.Script do
   executes a Lua script within a context and returns an error tuple on
   failure
   """
-  @spec exec(script::String.t | compiled, context::map) ::
-    {:ok, any} | {:error, any}
+  @spec exec(script :: String.t() | compiled, context :: map) ::
+          {:ok, any} | {:error, any}
   def exec(script, context) do
     {:ok, exec!(script, context)}
   rescue
@@ -97,38 +100,44 @@ defmodule Lustex.Script do
   @doc """
   executes a Lua script within a context and raises on failure
   """
-  @spec exec!(script::String.t | compiled, context::map) :: any
+  @spec exec!(script :: String.t() | compiled, context :: map) :: any
   def exec!(script, context) when is_binary(script) do
     script
     |> compile!(eval?: false)
     |> exec!(context)
   end
+
   def exec!(script, context) do
     {chunk, state} = script
-    state = Enum.reduce(
-      context,
-      state,
-      fn {k, v}, a -> :luerl.set_table([k], v, a) end
-    )
+
+    state =
+      Enum.reduce(context, state, fn {k, v}, a ->
+        :luerl.set_table([k], v, a)
+      end)
 
     {result, _} = :luerl.call_chunk(chunk, [], state)
     lua_to_ex(result)
   rescue
-    e in ErlangError -> case e do
-      %ErlangError{original: {:lua_error, reason, _}} -> reraise(
-        ScriptError,
-        "exec error #{inspect(reason)}",
-        System.stacktrace
-      )
-      _ -> reraise(e, System.stacktrace)
-    end
+    e in ErlangError ->
+      case e do
+        %ErlangError{original: {:lua_error, reason, _}} ->
+          reraise(
+            ScriptError,
+            "exec error #{inspect(reason)}",
+            System.stacktrace()
+          )
+
+        _ ->
+          reraise(e, System.stacktrace())
+      end
   end
 
   @doc """
   calls a Lua function and returns an error tuple on failure
   """
-  @spec call(script::String.t | compiled, function::String.t, [args::any]) ::
-    {:ok, any} | {:error, any}
+  @spec call(script :: String.t() | compiled, function :: String.t(), [
+          args :: any
+        ]) :: {:ok, any} | {:error, any}
   def call(script, function, args) do
     {:ok, call!(script, function, args)}
   rescue
@@ -138,32 +147,38 @@ defmodule Lustex.Script do
   @doc """
   calls a Lua function and throws on failure
   """
-  @spec call!(script::String.t | compiled, function::String.t, [args::any]) ::
-    any
+  @spec call!(script :: String.t() | compiled, function :: String.t(), [
+          args :: any
+        ]) :: any
   def call!(script, function, args) when is_binary(script) do
     script
     |> compile!(eval?: true)
     |> call!(function, args)
   end
+
   def call!(script, function, args) do
     {_chunk, state} = script
     {result, _state} = :luerl.call_function([function], args, state)
     lua_to_ex(result)
   rescue
-    e in ErlangError -> case e do
-      %ErlangError{original: {:lua_error, reason, _}} -> reraise(
-          ScriptError,
-          "call error (#{function}): #{inspect(reason)}",
-          System.stacktrace
-      )
-      _ -> reraise(e, System.stacktrace)
-    end
+    e in ErlangError ->
+      case e do
+        %ErlangError{original: {:lua_error, reason, _}} ->
+          reraise(
+            ScriptError,
+            "call error (#{function}): #{inspect(reason)}",
+            System.stacktrace()
+          )
+
+        _ ->
+          reraise(e, System.stacktrace())
+      end
   end
 
   @doc """
   generates a Lua-compatible callback for a function
   """
-  @spec callback(function::(... -> any)) :: ([any] -> [any])
+  @spec callback(function :: (... -> any)) :: ([any] -> [any])
   def callback(function) do
     fn args ->
       [apply(function, Enum.map(args, &lua_to_ex/1))]
@@ -173,7 +188,8 @@ defmodule Lustex.Script do
   @doc """
   generates a Lua-compatible callback for a module/function
   """
-  @spec callback(module::module, function::(... -> any)) :: ([any] -> [any])
+  @spec callback(module :: module, function :: (... -> any)) ::
+          ([any] -> [any])
   def callback(module, function) do
     fn args ->
       [apply(module, function, Enum.map(args, &lua_to_ex/1))]
@@ -184,20 +200,24 @@ defmodule Lustex.Script do
     # convert integer-keyed tables to lists
     Enum.map(table, fn {_, v} -> lua_to_ex(v) end)
   end
+
   defp lua_to_ex([{_k, _v} | _tail] = table) do
     # convert other tables to maps
     table
     |> Enum.map(fn {k, v} -> {k, lua_to_ex(v)} end)
     |> Enum.into(%{})
   end
+
   defp lua_to_ex([x]) do
     # collapse luerl's extra lists
     lua_to_ex(x)
   end
+
   defp lua_to_ex(x) when is_float(x) and trunc(x) == x do
     # convert exact floats to ints, since Lua has no integer type
     trunc(x)
   end
+
   defp lua_to_ex(x) do
     # pass all others
     x
@@ -206,7 +226,7 @@ defmodule Lustex.Script do
   defp defaults do
     %{
       tostring: callback(&tostring/1),
-      print:    callback(&print/1)
+      print: callback(&print/1)
     }
   end
 
