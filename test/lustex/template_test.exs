@@ -19,6 +19,7 @@ defmodule Lustex.TemplateTest do
     assert render!(compiled, %{}) == "test1"
 
     {:error, %TemplateError{}} = compile("{{")
+
     assert_raise TemplateError, ~r/parse error/, fn ->
       compile!("{{")
     end
@@ -39,9 +40,11 @@ defmodule Lustex.TemplateTest do
 
     {:error, %TemplateError{}} = render("{{", %{value: 1})
     {:error, %ScriptError{}} = render("{{test.value}}", %{})
+
     assert_raise TemplateError, ~r/parse error/, fn ->
       render!("{{", %{value: 1})
     end
+
     assert_raise ScriptError, ~r/exec error/, fn ->
       render!("{{test.value}}", %{})
     end
@@ -57,10 +60,12 @@ defmodule Lustex.TemplateTest do
       ~S({{ {  }}),
       ~S({{ }  }}),
       ~S({{elseif}}1234{{end}}),
-      ~S({{else}}1234{{end}}),
+      ~S({{else}}1234{{end}})
     ]
+
     for template <- templates do
       context = %{}
+
       assert_raise TemplateError, ~r/parse error/, fn ->
         render!(template, context)
       end
@@ -86,6 +91,7 @@ defmodule Lustex.TemplateTest do
       line literal
       """
     ]
+
     for template <- templates do
       assert render(template, %{value: 1}) === {:ok, template}
     end
@@ -147,22 +153,24 @@ defmodule Lustex.TemplateTest do
       {~S({{ {}             }}), inspect([])},
       {~S({{ {{}}           }}), inspect([[]])},
       {~S({{ {1, 2, 3}      }}), inspect([1, 2, 3])},
-      {~S({{ {a=1, b=2}     }}), inspect(%{"a" => 1, "b" => 2})},
+      {~S({{ {a=1, b=2}     }}), inspect(%{"a" => 1, "b" => 2})}
     ]
+
     for {template, result} <- templates do
       context = %{
-        value:     1,
-        list:      [1, 2, 3],
-        map:       %{value: 2},
-        do_:       "do",
+        value: 1,
+        list: [1, 2, 3],
+        map: %{value: 2},
+        do_: "do",
         function_: "function",
-        if_:       "if",
-        elseif_:   "elseif",
-        else_:     "else",
-        for_:      "for",
-        while_:    "while",
-        end_:      "end",
+        if_: "if",
+        elseif_: "elseif",
+        else_: "else",
+        for_: "for",
+        while_: "while",
+        end_: "end"
       }
+
       assert render(template, context) === {:ok, result}
     end
   end
@@ -180,11 +188,11 @@ defmodule Lustex.TemplateTest do
           y = 2
         end
        }}{{ x + y }}
-       """,
-       "3"},
+       """, "3"}
     ]
+
     for {template, result} <- templates do
-      context = %{ value: 1 }
+      context = %{value: 1}
       assert render(template, context) === {:ok, result}
     end
   end
@@ -203,11 +211,11 @@ defmodule Lustex.TemplateTest do
           return z.a
         end
        }}{{ f(1, 2) }}
-       """,
-       "3"},
+       """, "3"}
     ]
+
     for {template, result} <- templates do
-      context = %{ value: 1 }
+      context = %{value: 1}
       assert render(template, context) === {:ok, result}
     end
   end
@@ -339,10 +347,11 @@ defmodule Lustex.TemplateTest do
         }}
         """,
         "con1con2"
-      },
+      }
     ]
+
     for {template, result} <- templates do
-      context = %{ value: 1 }
+      context = %{value: 1}
       assert render(template, context) === {:ok, result}
     end
   end
@@ -368,10 +377,11 @@ defmodule Lustex.TemplateTest do
         }}
         """,
         "<[44][45][46]><[54][55][56]><[64][65][66]>"
-      },
+      }
     ]
+
     for {template, result} <- templates do
-      context = %{ list: [4, 5, 6] }
+      context = %{list: [4, 5, 6]}
       assert render(template, context) === {:ok, result}
     end
   end
@@ -399,10 +409,11 @@ defmodule Lustex.TemplateTest do
         }}
         """,
         "<[11][12]><[21][22]>"
-      },
+      }
     ]
+
     for {template, result} <- templates do
-      context = %{ value: 2 }
+      context = %{value: 2}
       assert render(template, context) === {:ok, result}
     end
   end

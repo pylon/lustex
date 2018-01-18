@@ -16,10 +16,7 @@ defmodule Lustex.ScriptTest do
     assert eval!("{}", %{}) === []
     assert eval!("{1}", %{}) === [1]
     assert eval!(~S({"1", 2, 3}), %{}) === ["1", 2, 3]
-    assert(
-      eval!("{a=1, b={c=3}}", %{}) ===
-      %{"a" => 1, "b" => %{"c" => 3}}
-    )
+    assert(eval!("{a=1, b={c=3}}", %{}) === %{"a" => 1, "b" => %{"c" => 3}})
 
     # erlang
     assert eval!("x", %{}) === nil
@@ -32,9 +29,10 @@ defmodule Lustex.ScriptTest do
     assert eval!("x", %{x: []}) === []
     assert eval!("x", %{x: [1]}) === [1]
     assert eval!("x", %{x: ["1", 2, 3]}) === ["1", 2, 3]
+
     assert(
       eval!("x", %{x: %{"a" => 1, "b" => %{"c" => 3}}}) ===
-      %{"a" => 1, "b" => %{"c" => 3}}
+        %{"a" => 1, "b" => %{"c" => 3}}
     )
   end
 
@@ -43,6 +41,7 @@ defmodule Lustex.ScriptTest do
     assert eval!("x > 0", %{x: 42})
 
     {:error, %ScriptError{}} = eval("(> x 42)", %{x: 43})
+
     assert_raise ScriptError, ~r/parse error/, fn ->
       eval!("(> x 42)", %{x: 43})
     end
@@ -61,6 +60,7 @@ defmodule Lustex.ScriptTest do
     assert exec!(compiled, %{x: -42}) == 42
 
     {:error, %ScriptError{}} = compile(~S<}>)
+
     assert_raise ScriptError, ~r/parse error/, fn ->
       compile!(~S<}>)
     end
@@ -79,15 +79,18 @@ defmodule Lustex.ScriptTest do
     y = 0
     return x >= y and x or -x
     """
+
     assert exec(script, %{x: -42}) === {:ok, 42}
     assert exec!(script, %{x: -42}) === 42
 
     {:error, %ScriptError{}} = exec("invalid", %{})
+
     assert_raise ScriptError, ~r/parse error/, fn ->
       exec!("invalid", %{})
     end
 
     {:error, %ScriptError{}} = exec(~S<error("wat")>, %{})
+
     assert_raise ScriptError, ~r/exec error/, fn ->
       exec!(~S<error("wat")>, %{})
     end
@@ -104,20 +107,24 @@ defmodule Lustex.ScriptTest do
       error("wat")
     end
     """
+
     assert call(script, "abs", [-42]) === {:ok, 42}
     assert call!(script, "abs", [-42]) === 42
 
     {:error, %ScriptError{}} = call("invalid", "abs", [])
+
     assert_raise ScriptError, ~r/parse error/, fn ->
       call!("invalid", "abs", [])
     end
 
     {:error, %ScriptError{}} = call(script, "sgn", [])
+
     assert_raise ScriptError, ~r/call error/, fn ->
       call!(script, "sgn", [])
     end
 
     {:error, %ScriptError{}} = call(script, "fail", [])
+
     assert_raise ScriptError, ~r/call error/, fn ->
       call!(script, "fail", [])
     end
@@ -129,6 +136,7 @@ defmodule Lustex.ScriptTest do
       test1: callback(fn x, y, z -> [x, y, z] end),
       test2: callback(Lustex.ScriptTest, :inject)
     }
+
     expect1 = [1, [2, 3], %{"x" => 4}]
 
     assert eval!("test0()", context) === 0

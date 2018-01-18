@@ -17,10 +17,10 @@ defmodule Lustex.Template do
   For options, see Lustex.Script.compile.
   """
   @spec render(
-    template::String.t | Script.compiled,
-    context::map,
-    options::keyword) ::
-    {:ok, String.t} | {:error, any}
+          template :: String.t() | Script.compiled(),
+          context :: map,
+          options :: keyword
+        ) :: {:ok, String.t()} | {:error, any}
   def render(template, context, options \\ []) do
     {:ok, render!(template, context, options)}
   rescue
@@ -31,15 +31,18 @@ defmodule Lustex.Template do
   renders a string or compiled template, throwing on error
   """
   @spec render!(
-    template::String.t | Script.compiled,
-    context::map,
-    options::keyword) :: String.t
+          template :: String.t() | Script.compiled(),
+          context :: map,
+          options :: keyword
+        ) :: String.t()
   def render!(template, context, options \\ [])
+
   def render!(template, context, options) when is_binary(template) do
     template
     |> compile!(options)
     |> render!(context)
   end
+
   def render!(template, context, _options) do
     Script.exec!(template, context)
   end
@@ -47,8 +50,8 @@ defmodule Lustex.Template do
   @doc """
   compiles a string template to a Lua chunk for later evaluation
   """
-  @spec compile(template::String.t, options::keyword) ::
-    {:ok, Script.compiled} | {:error, any}
+  @spec compile(template :: String.t(), options :: keyword) ::
+          {:ok, Script.compiled()} | {:error, any}
   def compile(template, options \\ []) do
     {:ok, compile!(template, options)}
   rescue
@@ -58,7 +61,8 @@ defmodule Lustex.Template do
   @doc """
   compiles a string template, throwing on error
   """
-  @spec compile!(template::String.t, options::keyword) :: Script.compiled
+  @spec compile!(template :: String.t(), options :: keyword) ::
+          Script.compiled()
   def compile!(template, options \\ []) do
     template
     |> lex!()
@@ -68,7 +72,9 @@ defmodule Lustex.Template do
 
   defp lex!(template) do
     case :lustex_lexer.string(to_charlist(template)) do
-      {:ok, tokens, _line} -> tokens
+      {:ok, tokens, _line} ->
+        tokens
+
       {:error, reason, _line} ->
         raise TemplateError, "parse error, #{inspect(reason)}"
     end
@@ -76,7 +82,9 @@ defmodule Lustex.Template do
 
   defp parse!(tokens) do
     case :lustex_parser.parse(tokens) do
-      {:ok, script} -> script
+      {:ok, script} ->
+        script
+
       {:error, reason} ->
         raise TemplateError, "parse error: #{inspect(reason)}"
     end
