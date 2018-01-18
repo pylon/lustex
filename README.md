@@ -9,7 +9,7 @@ The API reference is available [here](https://hexdocs.pm/lustex/).
 ```elixir
 def deps do
   [
-    {:lustex, "~> 0.1.0"}
+    {:lustex, "~> 0.2.0"}
   ]
 end
 ```
