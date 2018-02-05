@@ -3,8 +3,9 @@
 Lua-based string templates for Elixir
 
 ## Status
-[![CircleCI](http://circleci-badges-max.herokuapp.com/img/pylon/lustex?token=:circle-ci-token)](https://circleci.com/gh/pylon/lustex)
 [![Hex](http://img.shields.io/hexpm/v/lustex.svg?style=flat)](https://hex.pm/packages/lustex)
+[![Test](http://circleci-badges-max.herokuapp.com/img/pylon/lustex?token=:circle-ci-token)](https://circleci.com/gh/pylon/lustex)
+[![Coverage](https://coveralls.io/repos/github/pylon/lustex/badge.svg)](https://coveralls.io/github/pylon/lustex)
 
 The API reference is available [here](https://hexdocs.pm/lustex/).
 

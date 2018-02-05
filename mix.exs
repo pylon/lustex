@@ -8,8 +8,14 @@ defmodule Lustex.Mixfile do
       version: "0.2.0",
       elixir: "~> 1.6",
       description: "Lua-based string templates for Elixir",
-      deps: deps(),
       package: package(),
+      deps: deps(),
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.html": :test,
+        "coveralls.post": :test
+      ],
       dialyzer: [
         ignore_warnings: ".dialyzerignore",
         plt_add_deps: :transitive
@@ -21,6 +27,7 @@ defmodule Lustex.Mixfile do
   defp deps do
     [
       {:luerl, "~> 0.3.0"},
+      {:excoveralls, "~> 0.8", only: :test},
       {:credo, "~> 0.5", only: :dev, runtime: false},
       {:dialyxir, "~> 0.5", only: :dev, runtime: false},
       {:ex_doc, "~> 0.18", only: :dev, runtime: false}
