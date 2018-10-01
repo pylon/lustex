@@ -27,10 +27,10 @@ defmodule Lustex.Mixfile do
   defp deps do
     [
       {:luerl, "~> 0.3.0"},
-      {:excoveralls, "~> 0.8", only: :test},
-      {:credo, "~> 0.5", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.10", only: :test},
+      {:credo, "~> 0.10", only: :dev, runtime: false},
       {:dialyxir, "~> 0.5", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.18", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.19", only: :dev, runtime: false}
     ]
   end
 
