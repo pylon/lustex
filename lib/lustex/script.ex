@@ -118,7 +118,7 @@ defmodule Lustex.Script do
     {result, _} = :luerl.call_chunk(chunk, [], state)
     lua_to_ex(result)
   rescue
-    e in ErlangError ->
+    e ->
       case e do
         %ErlangError{original: {:lua_error, reason, _}} ->
           reraise(
@@ -161,7 +161,7 @@ defmodule Lustex.Script do
     {result, _state} = :luerl.call_function([function], args, state)
     lua_to_ex(result)
   rescue
-    e in ErlangError ->
+    e ->
       case e do
         %ErlangError{original: {:lua_error, reason, _}} ->
           reraise(
@@ -203,9 +203,7 @@ defmodule Lustex.Script do
 
   defp lua_to_ex([{_k, _v} | _tail] = table) do
     # convert other tables to maps
-    table
-    |> Enum.map(fn {k, v} -> {k, lua_to_ex(v)} end)
-    |> Enum.into(%{})
+    Enum.into(table, %{}, fn {k, v} -> {k, lua_to_ex(v)} end)
   end
 
   defp lua_to_ex([x]) do
