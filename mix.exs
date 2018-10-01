@@ -6,7 +6,7 @@ defmodule Lustex.Mixfile do
       app: :lustex,
       name: "Lustex",
       version: "0.2.0",
-      elixir: "~> 1.6",
+      elixir: "~> 1.7",
       description: "Lua-based string templates for Elixir",
       package: package(),
       deps: deps(),
