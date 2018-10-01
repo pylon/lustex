@@ -16,7 +16,9 @@ jobs:
       - run: mix format --check-formatted
       - run: mix test
       - run: mix credo --strict
-      - run: mix dialyzer --halt-exit-status
+      - run:
+          command: mix dialyzer --halt-exit-status
+          no_output_timout: 30m
       - run: mix coveralls.post --sha $(git rev-parse HEAD) --branch $(git rev-parse --abbrev-ref HEAD)
       - save_cache:
           key: build-{{checksum "mix.lock"}}
